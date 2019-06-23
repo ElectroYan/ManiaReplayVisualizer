@@ -15,11 +15,12 @@ namespace ManiaReplayVisualizer
 		public static readonly int WIN_HEIGHT = 900;
 		public static readonly int WIN_WIDTH = 1500;
 		static int NoteWidth = 100;
-		static int NoteHeight = 50;
-		static int ScrollSpeed  = 1500;
+		static int NoteMinHeight = 25;
+		public static int ScrollSpeed = 1000;
 		static int ReplayXStart = 200;
-		static int BeatmapXStart = 200;
+		static int BeatmapXStart = 150;
 		static int HitPosition = 800;
+		static int ColumnSpacing = Math.Abs(ReplayXStart - BeatmapXStart);
 
 		public static RenderWindow Win = null;
 		internal static void Start(string audioFile)
@@ -49,7 +50,7 @@ namespace ManiaReplayVisualizer
 					music.Play();
 					musicPlaying = true;
 				}
-				
+
 
 				DrawNotes(watch.ElapsedMilliseconds);
 
@@ -84,27 +85,33 @@ namespace ManiaReplayVisualizer
 
 		private static void DrawNotes(long elapsedMilliseconds)
 		{
-			RectangleShape replayNote = new RectangleShape(new Vector2f(NoteWidth, NoteHeight));
-			replayNote.FillColor = new Color(0, 0, 255, 100);
-			RectangleShape beatmapNote = new RectangleShape(new Vector2f(NoteWidth, NoteHeight));
-			beatmapNote.FillColor = new Color(0, 255, 0, 200);
+			RectangleShape replayNote = new RectangleShape(new Vector2f(NoteWidth, NoteMinHeight));
+			replayNote.FillColor = new Color(0, 255, 0, 100);
+			RectangleShape beatmapNote = new RectangleShape(new Vector2f(NoteWidth, NoteMinHeight));
+			beatmapNote.FillColor = new Color(255, 0, 0, 100);
 
-			foreach (var item in ManiaParser.BeatmapFile)
-			{
-				float yPos = (((int)elapsedMilliseconds - HitPosition - item.Timing)*ScrollSpeed/1000f) + HitPosition + MainWindow.NoteOffset;
-				if (yPos > -NoteHeight && yPos < 900 + NoteHeight)
-				{
-					beatmapNote.Position = new Vector2f(BeatmapXStart + item.Key * NoteWidth, yPos);
-					Win.Draw(beatmapNote);
-				}
-			}
 			foreach (var item in ManiaParser.ReplayFile)
 			{
-				float yPos = (((int)elapsedMilliseconds - HitPosition - item.Timing)*ScrollSpeed/1000f) + HitPosition + MainWindow.NoteOffset;
-				if (yPos > -NoteHeight && yPos < 900 + NoteHeight)
+				float yPos = (((int)elapsedMilliseconds - HitPosition - item.Timing) * ScrollSpeed / 1000f) + HitPosition + MainWindow.NoteOffset;
+				float yPosEnd = (((int)elapsedMilliseconds - HitPosition - item.Timing + item.Length) * ScrollSpeed / 1000f) + HitPosition + MainWindow.NoteOffset;
+				float noteHeight = Math.Max(NoteMinHeight, yPosEnd-yPos);
+				replayNote.Size = new Vector2f(NoteWidth, noteHeight);
+				if (yPos > -noteHeight && yPos < 900 + noteHeight)
 				{
-					replayNote.Position = new Vector2f(ReplayXStart + item.Key * NoteWidth, yPos);
+					replayNote.Position = new Vector2f(ReplayXStart + item.Key * (NoteWidth + ColumnSpacing), yPos);
 					Win.Draw(replayNote);
+				}
+			}
+			foreach (var item in ManiaParser.BeatmapFile)
+			{
+				float yPos = (((int)elapsedMilliseconds - HitPosition - item.Timing) * ScrollSpeed / 1000f) + HitPosition + MainWindow.NoteOffset;
+				float yPosEnd = (((int)elapsedMilliseconds - HitPosition - item.Timing + item.Length) * ScrollSpeed / 1000f) + HitPosition + MainWindow.NoteOffset;
+				float noteHeight = Math.Max(NoteMinHeight, yPosEnd - yPos); //item.length
+				beatmapNote.Size = new Vector2f(NoteWidth, noteHeight);
+				if (yPos > -noteHeight && yPos < 900 + noteHeight)
+				{
+					beatmapNote.Position = new Vector2f(BeatmapXStart + item.Key * (NoteWidth + ColumnSpacing), yPos);
+					Win.Draw(beatmapNote);
 				}
 			}
 

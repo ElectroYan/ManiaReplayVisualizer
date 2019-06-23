@@ -13,6 +13,7 @@ namespace ManiaReplayVisualizer
 	{
 		
 		public static int NoteOffset = 0;
+		
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -22,13 +23,13 @@ namespace ManiaReplayVisualizer
 
 		private void StartReplay_Click(object sender, RoutedEventArgs e)
 		{
-			int mode = (int)Math.Round(ModeSlider.Value);
+			int mode = 1;//(int)Math.Round(ModeSlider.Value);
 			string audioFile = "";
 			if (mode == 1)
 			{
+				ManiaParser.ReadReplay(ReplayFilePath.Text.Trim('"'));
 				try
 				{
-					ManiaParser.ReadReplay(ReplayFilePath.Text.Trim('"'));
 				}
 				catch
 				{
@@ -52,6 +53,32 @@ namespace ManiaReplayVisualizer
 		{
 			OffsetValue.Text = ((int)OffsetSlider.Value).ToString();
 			NoteOffset = (int)OffsetSlider.Value;
+		}
+
+		private void BeatmapFilePath_Drop(object sender, DragEventArgs e)
+		{
+			BeatmapFilePath.Text = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
+		}
+
+		private void ReplayFilePath_Drop(object sender, DragEventArgs e)
+		{
+			ReplayFilePath.Text = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
+		}
+
+		private void BeatmapFilePath_PreviewDragOver(object sender, DragEventArgs e)
+		{
+			e.Handled = true;
+		}
+
+		private void ReplayFilePath_PreviewDragOver(object sender, DragEventArgs e)
+		{
+			e.Handled = true;
+		}
+
+		private void ScrollSpeedSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+		{
+			ManiaVisualizer.ScrollSpeed = (int)ScrollSpeedSlider.Value;
+			ScrollSpeedValue.Text = ManiaVisualizer.ScrollSpeed.ToString();
 		}
 	}
 	

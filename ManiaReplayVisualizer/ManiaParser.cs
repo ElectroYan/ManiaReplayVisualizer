@@ -16,11 +16,17 @@ namespace ManiaReplayVisualizer
 		{
 			Replay replay = Replay.Read(path);
 			bool[] keyPressed = new bool[10];
-			foreach (var item in replay.ReplayFrames.Where(x => x.TimeAbs > 0))
+			int[] holdDuration = new int[10];
+			int[] startTiming = new int[10];
+			List<ReplayFrame> frames = replay.ReplayFrames.Where(x => x.TimeAbs > 0).ToList();
+			int keyCount = frames.Select(x=> Convert.ToString((int)x.X, 2).Length).Max();
+			for (int j = 0; j < frames.Count(); j++)
 			{
+				ReplayFrame item = frames[j];
 				string x = String.Join("", Convert.ToString((int)item.X, 2).ToCharArray().Reverse().ToArray());
-				x += x.Length == 1 ? "000" : (x.Length == 2 ? "00" : (x.Length == 3 ? "0" : ""));
+				x = x.PadRight(keyCount, '0');
 				//Console.WriteLine(x);
+
 				char[] key = x.ToCharArray();
 
 				for (int i = 0; i < key.Count(); i++)
@@ -28,11 +34,20 @@ namespace ManiaReplayVisualizer
 					if (key[i] == '1')
 					{
 						if (!keyPressed[i])
-							ReplayFile.Add(new ManiaHitObject(item.TimeAbs, i));
+							startTiming[i] = item.TimeAbs;
 						keyPressed[i] = true;
+						if (j < frames.Count()-1)
+							holdDuration[i] += frames[j+1].TimeDiff;
 					}
 					else
+					{
+						if (keyPressed[i])
+						{
+							ReplayFile.Add(new ManiaHitObject(startTiming[i], i, holdDuration[i]));
+							holdDuration[i] = 0;
+						}
 						keyPressed[i] = false;
+					}
 				}
 			}
 			//Console.WriteLine(ReplayFile.Count());
@@ -63,9 +78,9 @@ namespace ManiaReplayVisualizer
 			foreach (string entry in file)
 			{
 				if (hitObjects)
-				{
+				{//add or subtract first timing point.
 					string[] parts = entry.Split(',');
-					objects.Add(new ManiaHitObject(int.Parse(parts[2]), columns.IndexOf(int.Parse(parts[0])), int.Parse(parts[5].Split(':')[0])));
+					objects.Add(new ManiaHitObject(int.Parse(parts[2]), columns.IndexOf(int.Parse(parts[0])), Math.Max(0,int.Parse(parts[5].Split(':')[0])-int.Parse(parts[2]))));
 				}
 				if (entry.StartsWith("[HitObjects]"))
 					hitObjects = true;
