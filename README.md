@@ -1,5 +1,7 @@
-# ManiaReplayVisualizer
+# OsuReplayVisualizer
 Visually compares the replay to the beatmap file
+
+Currently works for mania and taiko
 
 Uses [SFML](https://www.sfml-dev.org/) and a [replay file reader](https://github.com/HoLLy-HaCKeR/osu-database-reader) and [NAudio](https://github.com/naudio/NAudio)
 
