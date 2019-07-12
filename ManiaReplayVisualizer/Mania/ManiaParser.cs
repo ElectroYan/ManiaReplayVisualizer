@@ -6,18 +6,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ManiaReplayVisualizer
+namespace OsuReplayVisualizer
 {
-	class ManiaParser
+	class ManiaParser : Parser
 	{
-		public static List<ManiaHitObject> ReplayFile = new List<ManiaHitObject>();
-		public static List<ManiaHitObject> BeatmapFile = new List<ManiaHitObject>();
-		public static void ReadReplay(string path)
+
+		public override void ReadReplay(string path)
 		{
 			Replay replay = Replay.Read(path);
 			bool[] keyPressed = new bool[10];
 			int[] holdDuration = new int[10];
 			int[] startTiming = new int[10];
+			ReplayFile = new List<HitObject>();
 			List<ReplayFrame> frames = replay.ReplayFrames.Where(x => x.TimeAbs > 0).ToList();
 			int keyCount = frames.Select(x=> Convert.ToString((int)x.X, 2).Length).Max();
 			for (int j = 0; j < frames.Count(); j++)
@@ -43,7 +43,7 @@ namespace ManiaReplayVisualizer
 					{
 						if (keyPressed[i])
 						{
-							ReplayFile.Add(new ManiaHitObject(startTiming[i], i, holdDuration[i]));
+							ReplayFile.Add(new HitObject(startTiming[i], i, holdDuration[i]));
 							holdDuration[i] = 0;
 						}
 						keyPressed[i] = false;
@@ -57,30 +57,22 @@ namespace ManiaReplayVisualizer
 			//}
 		}
 
-		public static string ReadBeatmap(string path)
+		public override void ReadBeatmap(List<string> file, int keyCount)
 		{
-			List<string> file = File.ReadAllLines(path).ToList();
-			int keyCount = int.Parse(file.FirstOrDefault(x => x.StartsWith("CircleSize:")).Split(':')[1].Trim());
-			string audioFile = path.Substring(0, path.LastIndexOf('\\')+1) + file.FirstOrDefault(x => x.StartsWith("AudioFilename:")).Split(':')[1].Trim();
 			BeatmapFile = AddNotes(keyCount, file);
-			//foreach (var item in BeatmapFile)
-			//{
-			//	Console.WriteLine(item.Timing + "\t" + item.Key);
-			//}
-			return audioFile;
 		}
 
-		private static List<ManiaHitObject> AddNotes(int keyCount, List<string> file)
+		private List<HitObject> AddNotes(int keyCount, List<string> file)
 		{
 			List<int> columns = ManiaColumns.GetColumnsByKeycount(keyCount);
 			bool hitObjects = false;
-			List<ManiaHitObject> objects = new List<ManiaHitObject>();
+			List<HitObject> objects = new List<HitObject>();
 			foreach (string entry in file)
 			{
 				if (hitObjects)
-				{//add or subtract first timing point.
+				{//add or subtract first timing point maybe.
 					string[] parts = entry.Split(',');
-					objects.Add(new ManiaHitObject(int.Parse(parts[2]), columns.IndexOf(int.Parse(parts[0])), Math.Max(0,int.Parse(parts[5].Split(':')[0])-int.Parse(parts[2]))));
+					objects.Add(new HitObject(int.Parse(parts[2]), columns.IndexOf(int.Parse(parts[0])), Math.Max(0,int.Parse(parts[5].Split(':')[0])-int.Parse(parts[2]))));
 				}
 				if (entry.StartsWith("[HitObjects]"))
 					hitObjects = true;

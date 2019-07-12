@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ManiaReplayVisualizer.Properties
+namespace OsuReplayVisualizer.Properties
 {
 
 

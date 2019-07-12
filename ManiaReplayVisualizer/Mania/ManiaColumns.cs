@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ManiaReplayVisualizer
+namespace OsuReplayVisualizer
 {
 	class ManiaColumns
 	{
@@ -19,16 +19,5 @@ namespace ManiaReplayVisualizer
 		}
 	}
 
-	public class ManiaHitObject
-	{
-		public ManiaHitObject(int timing, int key, int length = 0)
-		{
-			Timing = timing;
-			Key = key;
-			Length = length;
-		}
-		public int Timing;
-		public int Key;
-		public int Length;
-	}
+	
 }
