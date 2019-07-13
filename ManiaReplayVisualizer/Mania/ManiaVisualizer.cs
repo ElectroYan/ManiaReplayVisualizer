@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using NAudio.Wave;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OsuReplayVisualizer
 {
@@ -22,7 +23,7 @@ namespace OsuReplayVisualizer
 		string AudioFile = "";
 		
 
-		public ManiaVisualizer(ManiaParser mania, string audioFile)
+		public ManiaVisualizer(ManiaParser mania, string audioFile) : base (audioFile)
 		{
 			ReplayFile = mania.ReplayFile;
 			BeatmapFile = mania.BeatmapFile;
@@ -36,52 +37,28 @@ namespace OsuReplayVisualizer
 			Loop();
 		}
 
-		private void Loop()
-		{
-			Stopwatch watch = new Stopwatch();
-			bool musicPlaying = false;
-			Music music;
-			if (AudioFile.EndsWith(".mp3"))
-			{
-				new AudioConverter().ConvertMp3ToWav(AudioFile);
-				music = new Music("Audio.wav");
-			}
-			else
-				music = new Music(AudioFile);
-			watch.Start();
-			while (Win.IsOpen)
-			{
-				Win.DispatchEvents();
-				if (!musicPlaying)
-				{
-					music.Play();
-					musicPlaying = true;
-				}
 
 
-				DrawNotes(watch.ElapsedMilliseconds);
-
-				DrawDefaultStuff();
-
-				Win.Display();
-
-				Thread.Sleep(1);
-
-				Win.Clear();
-			}
-		}
-
-		private void DrawDefaultStuff()
+		protected override void DrawDefaultStuff()
 		{
 			RectangleShape hitPositionBar = new RectangleShape(new Vector2f(WIN_WIDTH, 5));
 			hitPositionBar.FillColor = Color.White;
 			hitPositionBar.Position = new Vector2f(0, HitPosition);
 			Win.Draw(hitPositionBar);
+			int keyCount = BeatmapFile.Max(x => x.Key);
+			RectangleShape columnLine = new RectangleShape(new Vector2f(2, WIN_HEIGHT));
+			columnLine.FillColor = new Color(200,200,200);
+			for (int i = 1; i <= keyCount; i++)
+			{
+				float xPos = Math.Min(ReplayXStart, BeatmapXStart) + i * (ColumnSpacing + NoteSize);
+				columnLine.Position = new Vector2f(xPos, 0);
+				Win.Draw(columnLine);
+			}
 		}
 
 		
 
-		private void DrawNotes(long elapsedMilliseconds)
+		protected override void DrawNotes(long elapsedMilliseconds)
 		{
 			RectangleShape replayNote = new RectangleShape(new Vector2f(NoteSize, NoteMinHeight));
 			replayNote.FillColor = new Color(0, 255, 0, 100);

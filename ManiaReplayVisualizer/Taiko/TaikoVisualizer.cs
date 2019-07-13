@@ -12,11 +12,9 @@ namespace OsuReplayVisualizer
 {
 	class TaikoVisualizer : ScrollVisualizer
 	{
-		string AudioFile = "";
 		int HitPosition = 200;
-		public TaikoVisualizer(TaikoParser taiko, string audioFile)
+		public TaikoVisualizer(TaikoParser taiko, string audioFile) : base (audioFile)
 		{
-			AudioFile = audioFile;
 			BeatmapFile = taiko.BeatmapFile;
 			ReplayFile = taiko.ReplayFile;
 		}
@@ -29,42 +27,8 @@ namespace OsuReplayVisualizer
 			Loop();
 		}
 
-		private void Loop()
-		{
-			Stopwatch watch = new Stopwatch();
-			bool musicPlaying = false;
-			Music music;
-			if (AudioFile.EndsWith(".mp3"))
-			{
-				new AudioConverter().ConvertMp3ToWav(AudioFile);
-				music = new Music("Audio.wav");
-			}
-			else
-				music = new Music(AudioFile);
-			watch.Start();
-			while (Win.IsOpen)
-			{
-				Win.DispatchEvents();
-				if (!musicPlaying)
-				{
-					music.Play();
-					musicPlaying = true;
-				}
 
-				DrawDefaultStuff();
-
-				DrawNotes(watch.ElapsedMilliseconds);
-
-
-				Win.Display();
-
-				Thread.Sleep(1);
-
-				Win.Clear();
-			}
-		}
-
-		private void DrawDefaultStuff()
+		protected override void DrawDefaultStuff()
 		{
 			CircleShape hitPositionCircles = new CircleShape(NoteSize/2);
 			hitPositionCircles.OutlineColor = Color.White;
@@ -75,7 +39,7 @@ namespace OsuReplayVisualizer
 			Win.Draw(hitPositionCircles);
 		}
 
-		private void DrawNotes(long elapsedMilliseconds)
+		protected override void DrawNotes(long elapsedMilliseconds)
 		{
 			CircleShape replayNote = new CircleShape(NoteSize / 2);
 			CircleShape beatmapNote = new CircleShape(NoteSize / 2);
